@@ -14,14 +14,14 @@ defmodule FancyDiscordWeb.DeployController do
   end
 
   def init(conn, %{"app_id" => app_id}) do
-    case Deploy.can_init?(%{app_id: app_id}) do
+    case Deploy.init_app?(%{app_id: app_id}) do
       true ->
         job = Deploy.start_init_job(%{app_id: app_id})
         json(conn, job)
       false ->
         conn
         |> put_status(400)
-        |> json(%{errors: %{data: "App already initialized"}})
+        |> json(%{errors: %{data: "App already initialized or cannot be initialized"}})
     end
   end
 

@@ -19,7 +19,7 @@ defmodule FancyDiscord.Gitlab.Job do
     {:error, response}
   end
 
-  defp pipeline_body(%{variables: variables} = data) do
+  defp pipeline_body(%{variables: variables}) do
     Jason.encode!(%{
       token: Gitlab.trigger_token(),
       ref: "master",
@@ -63,7 +63,7 @@ defmodule FancyDiscord.Gitlab.Job do
     |> IO.inspect(label: "Extracted job")
   end
 
-  def play_job(%{"id" => job_id} = job) do
+  def play_job(%{"id" => job_id}) do
     "https://gitlab.com/api/v4/projects/#{Gitlab.project_id()}/jobs/#{job_id}/play"
     |> HTTPoison.post("", headers())
     |> extract_body()

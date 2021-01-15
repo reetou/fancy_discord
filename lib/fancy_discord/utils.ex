@@ -7,7 +7,7 @@ defmodule FancyDiscord.Utils do
   end
   def handle_cmd_response({msg, code}), do: {:error, %{code: code, message: msg}}
 
-  def exec_cmd(bin, args, opts \\ []) do
+  def exec_cmd(bin, args) do
     Logger.debug("Executing #{bin} #{Enum.join(args, " ")}...")
     [bin | args]
     |> Enum.join(" ")

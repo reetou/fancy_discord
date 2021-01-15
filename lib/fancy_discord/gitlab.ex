@@ -6,4 +6,8 @@ defmodule FancyDiscord.Gitlab do
   def job(key) do
     Application.fetch_env!(:fancy_discord, :gitlab)[:jobs][key]
   end
+
+  def webhook_secret_token(key) do
+    Application.fetch_env!(:fancy_discord, :gitlab)[:webhook_secret_tokens][key]
+  end
 end

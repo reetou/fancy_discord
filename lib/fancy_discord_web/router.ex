@@ -1,5 +1,6 @@
 defmodule FancyDiscordWeb.Router do
   use FancyDiscordWeb, :router
+  alias FancyDiscordWeb.Plugs.GitlabSecretTokenPlug
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -13,8 +14,12 @@ defmodule FancyDiscordWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :gitlab_webhook do
+    plug GitlabSecretTokenPlug
+  end
+
   scope "/", FancyDiscordWeb do
-    pipe_through :browser
+    pipe_through :api
 
     post "/apps", AppController, :create
     delete "/apps/:app_id", AppController, :delete
@@ -23,6 +28,12 @@ defmodule FancyDiscordWeb.Router do
     post "/apps/:app_id/deploys", DeployController, :create
     post "/apps/:app_id/deploys/init", DeployController, :init
     get "/apps/:app_id/deploys/last", DeployController, :last_details
+  end
+
+  scope "/webhooks/gitlab", FancyDiscordWeb do
+    pipe_through :api
+    pipe_through :gitlab_webhook
+    post "/job_status_update", GitlabController, :job_status_update
   end
 
   # Other scopes may use custom stacks.

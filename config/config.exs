@@ -24,7 +24,11 @@ config :fancy_discord, :gitlab,
   trigger_token: System.get_env("GITLAB_TRIGGER_TOKEN"),
   jobs: [
     deploy_dokku_app: "deploy_dokku_app",
-    create_dokku_app: "create_dokku_app"
+    create_dokku_app: "create_dokku_app",
+    destroy_dokku_app: "destroy_dokku_app"
+  ],
+  webhook_secret_tokens: [
+    default: System.get_env("GITLAB_WEBHOOK_TOKEN")
   ]
 # Configures Elixir's Logger
 config :logger, :console,
