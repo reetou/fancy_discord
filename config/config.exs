@@ -30,6 +30,18 @@ config :fancy_discord, :gitlab,
   webhook_secret_tokens: [
     default: System.get_env("GITLAB_WEBHOOK_TOKEN")
   ]
+config :fancy_discord, :pow,
+       user: FancyDiscord.Schema.User,
+       repo: FancyDiscord.Repo
+
+config :fancy_discord, :pow_assent,
+  providers: [
+    discord: [
+      client_id: System.get_env("DISCORD_CLIENT_ID"),
+      client_secret: System.get_env("DISCORD_CLIENT_SECRET"),
+      strategy: Assent.Strategy.Discord
+    ]
+  ]
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",

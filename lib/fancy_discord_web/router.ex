@@ -1,5 +1,7 @@
 defmodule FancyDiscordWeb.Router do
   use FancyDiscordWeb, :router
+  use Pow.Phoenix.Router
+  use PowAssent.Phoenix.Router
   alias FancyDiscordWeb.Plugs.GitlabSecretTokenPlug
 
   pipeline :browser do
@@ -10,8 +12,20 @@ defmodule FancyDiscordWeb.Router do
     plug :put_secure_browser_headers
   end
 
+  pipeline :skip_csrf_protection do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_flash
+    plug :put_secure_browser_headers
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
+  end
+
+  pipeline :protected do
+    plug Pow.Plug.RequireAuthenticated,
+         error_handler: Pow.Phoenix.PlugErrorHandler
   end
 
   pipeline :gitlab_webhook do
@@ -20,6 +34,7 @@ defmodule FancyDiscordWeb.Router do
 
   scope "/", FancyDiscordWeb do
     pipe_through :api
+    pipe_through :protected
 
     post "/apps", AppController, :create
     delete "/apps/:app_id", AppController, :delete
@@ -34,6 +49,17 @@ defmodule FancyDiscordWeb.Router do
     pipe_through :api
     pipe_through :gitlab_webhook
     post "/job_status_update", GitlabController, :job_status_update
+  end
+
+  scope "/" do
+    pipe_through :skip_csrf_protection
+
+    pow_assent_authorization_post_callback_routes()
+  end
+
+  scope "/" do
+    pipe_through [:browser]
+    pow_assent_authorization_routes()
   end
 
   # Other scopes may use custom stacks.

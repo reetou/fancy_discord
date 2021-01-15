@@ -3,9 +3,12 @@ defmodule FancyDiscord.Schema.App do
   import Ecto.Changeset
   alias FancyDiscord.Repo
   alias FancyDiscord.Haikunator
+  alias FancyDiscord.Schema.User
+  import FancyDiscord.Utils
 
   @derive {Jason.Encoder, only: [:id, :project_name, :type]}
   @primary_key {:id, :binary_id, [autogenerate: true]}
+  @foreign_key_type :binary_id
   schema "apps" do
     field :project_name, :string
     field :dokku_app, :string
@@ -16,6 +19,8 @@ defmodule FancyDiscord.Schema.App do
     field :default_branch, :string, default: "main"
     field :bot_token, :string
 
+    belongs_to :user, User
+
     timestamps()
   end
 
@@ -25,6 +30,7 @@ defmodule FancyDiscord.Schema.App do
     |> change(%{dokku_app: Haikunator.build(9999)})
     |> validate_required([:project_name, :dokku_app, :type, :repo_url, :default_branch, :bot_token])
     |> validate_inclusion(:type, ["js"])
+    |> foreign_key_constraint([:user_id])
     |> unique_constraint([:dokku_app])
   end
 
@@ -43,11 +49,26 @@ defmodule FancyDiscord.Schema.App do
     |> Repo.update!()
   end
 
-  def get(id) do
+  def get(id) when is_uuid(id) do
     Repo.get(__MODULE__, id)
   end
 
-  def create(attrs) do
+  def get(_) do
+    nil
+  end
+
+  def get_in_user(user, id) do
+    user
+    |> User.with_apps()
+    |> Map.fetch!(:apps)
+    |> Enum.find(fn a -> a.id == id end)
+  end
+
+  def create(attrs, user_id) do
+    attrs =
+      attrs
+      |> Map.drop([:user_id, "user_id"])
+      |> Map.put("user_id", user_id)
     %__MODULE__{}
     |> changeset(attrs)
     |> Repo.insert()

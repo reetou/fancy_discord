@@ -1,10 +1,11 @@
 defmodule FancyDiscordWeb.AppController do
   use FancyDiscordWeb, :controller
   alias FancyDiscord.Schema.App
+  alias FancyDiscord.Schema.User
   alias FancyDiscord.Utils
 
-  def create(conn, params) do
-    case App.create(params) do
+  def create(%{assigns: %{current_user: %User{id: user_id, app_limit: limit, apps: apps} = user}} = conn, params) when length(apps) < limit do
+    case App.create(params, user_id) do
       {:ok, %App{} = app} -> json(conn, app)
       {:error, changeset} ->
         conn
@@ -13,13 +14,24 @@ defmodule FancyDiscordWeb.AppController do
     end
   end
 
-  def delete(conn, %{"app_id" => id}) do
-    App.delete(id)
-    json(conn, %{})
+  def create(conn, params) do
+    conn
+    |> put_status(403)
+    |> json(%{errors: %{data: "You have too much apps. Try deleting one"}})
   end
 
-  def show(conn, %{"app_id" => id}) do
-    case App.get(id) do
+  def delete(%{assigns: %{current_user: %User{} = user}} = conn, %{"app_id" => id}) do
+    case App.get_in_user(user, id) do
+      %App{} = app -> json(conn, %{})
+      nil ->
+        conn
+        |> put_status(404)
+        |> json(%{errors: %{data: "Not found"}})
+    end
+  end
+
+  def show(%{assigns: %{current_user: %User{} = user}} = conn, %{"app_id" => id}) do
+    case App.get_in_user(user, id) do
       %App{} = app -> json(conn, app)
       nil ->
         conn
