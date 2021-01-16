@@ -40,7 +40,7 @@ defmodule FancyDiscord do
     try do
       Gitlab.Job.start_build(%{
         variables: build_variables(data, :destroy)
-      }, Gitlab.job(:deploy_dokku_app))
+      }, Gitlab.job(:destroy_dokku_app))
       |> IO.inspect(label: "Result at DEPLOY")
     rescue
       e ->
