@@ -18,6 +18,16 @@ config :fancy_discord, FancyDiscordWeb.Endpoint,
   pubsub_server: FancyDiscord.PubSub,
   live_view: [signing_salt: "QdZ/BsVe"]
 
+
+config :cors_plug,
+       origin: ["http://localhost:3000"],
+       max_age: 86400,
+       methods: ["GET", "POST", "DELETE", "PUT"]
+
+config :fancy_discord,
+  user_token_salt: "dasdsadmk2332bhfsduh12elkme21ejk12gyuafjknfasfasjkfsadfas",
+  session_key: "_fancy_discord_key",
+  redirect_after_login_url: "http://localhost:3000"
 config :fancy_discord, :gitlab,
   project_id: System.get_env("GITLAB_PROJECT_ID"),
   project_access_token: System.get_env("GITLAB_PROJECT_ACCESS_TOKEN"),
@@ -32,7 +42,8 @@ config :fancy_discord, :gitlab,
   ]
 config :fancy_discord, :pow,
        user: FancyDiscord.Schema.User,
-       repo: FancyDiscord.Repo
+       repo: FancyDiscord.Repo,
+       routes_backend: FancyDiscordWeb.Pow.Routes
 
 config :fancy_discord, :pow_assent,
   providers: [

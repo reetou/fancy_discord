@@ -6,8 +6,8 @@ defmodule FancyDiscordWeb.Endpoint do
   # Set :encryption_salt if you would also like to encrypt it.
   @session_options [
     store: :cookie,
-    key: "_fancy_discord_key",
-    signing_salt: "X1tXg+T8"
+    key: Application.fetch_env!(:fancy_discord, :session_key),
+    signing_salt: Application.fetch_env!(:fancy_discord, :user_token_salt)
   ]
 
   socket "/socket", FancyDiscordWeb.UserSocket,
@@ -51,5 +51,6 @@ defmodule FancyDiscordWeb.Endpoint do
   plug Plug.Head
   plug Plug.Session, @session_options
   plug Pow.Plug.Session, otp_app: :fancy_discord
+  plug CORSPlug
   plug FancyDiscordWeb.Router
 end

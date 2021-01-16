@@ -7,7 +7,7 @@ defmodule FancyDiscord.Schema.App do
   alias FancyDiscord.Schema.Machine
   import FancyDiscord.Utils
 
-  @derive {Jason.Encoder, only: [:id, :project_name, :type]}
+  @derive {Jason.Encoder, only: [:id, :project_name, :type, :repo_url, :default_branch, :has_bot_token]}
   @primary_key {:id, :binary_id, [autogenerate: true]}
   @foreign_key_type :binary_id
   schema "apps" do
@@ -19,6 +19,7 @@ defmodule FancyDiscord.Schema.App do
     field :dokku_host, :string
     field :default_branch, :string, default: "main"
     field :bot_token, :string
+    field :has_bot_token, :boolean, virtual: true
 
     belongs_to :user, User
     belongs_to :machine, Machine
@@ -28,11 +29,12 @@ defmodule FancyDiscord.Schema.App do
 
   def changeset(module, attrs) do
     module
-    |> cast(attrs, [:project_name, :type, :github_oauth_token, :repo_url, :default_branch, :bot_token])
+    |> cast(attrs, [:project_name, :type, :github_oauth_token, :repo_url, :default_branch, :bot_token, :user_id])
     |> change(%{dokku_app: Haikunator.build(9999)})
-    |> validate_required([:project_name, :dokku_app, :type, :repo_url, :default_branch, :bot_token])
     |> validate_inclusion(:type, ["js"])
-    |> foreign_key_constraint([:user_id])
+    |> foreign_key_constraint(:user_id)
+    |> cast_assoc(:user)
+    |> validate_required([:project_name, :dokku_app, :type, :repo_url, :default_branch, :bot_token, :user_id])
     |> unique_constraint([:dokku_app])
   end
 
@@ -94,5 +96,14 @@ defmodule FancyDiscord.Schema.App do
 
   def with_machine(%__MODULE__{} = app) do
     Repo.preload(app, :machine)
+  end
+
+  def fill_virtual_fields(apps) when is_list(apps) do
+    Enum.map(apps, &fill_virtual_fields/1)
+  end
+
+  def fill_virtual_fields(%__MODULE__{bot_token: bot_token} = app) do
+    app
+    |> Map.put(:has_bot_token, bot_token != nil)
   end
 end

@@ -22,6 +22,10 @@ defmodule FancyDiscord.Schema.User do
     |> pow_assent_user_identity_changeset(user_identity, attrs, user_id_attrs)
   end
 
+  def get(id) do
+    Repo.get(__MODULE__, id)
+  end
+
   def with_apps(user) do
     Repo.preload(user, :apps)
   end

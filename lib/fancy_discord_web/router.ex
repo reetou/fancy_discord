@@ -3,6 +3,7 @@ defmodule FancyDiscordWeb.Router do
   use Pow.Phoenix.Router
   use PowAssent.Phoenix.Router
   alias FancyDiscordWeb.Plugs.GitlabSecretTokenPlug
+  alias FancyDiscordWeb.Plugs.ApiAuthPlug
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -21,11 +22,17 @@ defmodule FancyDiscordWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug :fetch_session
+    plug ApiAuthPlug, otp_app: :fancy_discord
   end
 
   pipeline :protected do
     plug Pow.Plug.RequireAuthenticated,
          error_handler: Pow.Phoenix.PlugErrorHandler
+  end
+
+  pipeline :api_protected do
+    plug Pow.Plug.RequireAuthenticated, error_handler: FancyDiscordWeb.APIAuthErrorHandler
   end
 
   pipeline :gitlab_webhook do
@@ -34,9 +41,13 @@ defmodule FancyDiscordWeb.Router do
 
   scope "/", FancyDiscordWeb do
     pipe_through :api
-    pipe_through :protected
+    pipe_through :api_protected
+
+    get "/auth/check", AuthController, :check
+    get "/auth/success", AuthController, :success
 
     post "/apps", AppController, :create
+    get "/apps", AppController, :list
     delete "/apps/:app_id", AppController, :delete
     get "/apps/:app_id", AppController, :show
 
@@ -54,7 +65,6 @@ defmodule FancyDiscordWeb.Router do
   scope "/" do
     pipe_through :skip_csrf_protection
 
-    pow_assent_authorization_post_callback_routes()
   end
 
   scope "/" do
