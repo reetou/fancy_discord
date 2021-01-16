@@ -14,7 +14,7 @@ To start your Phoenix server:
 - [x] Create user_id field in apps table
 - [x] Assign dokku host for ip on deploy if there is no ip assigned
 - [x] Add case for `FancyDiscord.Deploy.start_deploy/1` when app's machine is nil
-- [ ] Kill deploys older than 4 hours (jobs that succeeded more than 4 hours ago), remove apps from dokku machine and reset apps' machine field so it can be deployed on new machine later
+- [x] Kill deploys older than 4 hours (jobs that succeeded more than 4 hours ago), remove apps from dokku machine and reset apps' machine field so it can be deployed on new machine later
 - [x] Discord auth
 - [ ] Detect necessary buildpacks
 - [ ] Add getting stdout from bots machines with Vector.dev and NATS
