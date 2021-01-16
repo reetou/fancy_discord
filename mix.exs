@@ -46,6 +46,7 @@ defmodule FancyDiscord.MixProject do
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
       {:httpoison, "~> 1.8"},
+      {:quantum, "~> 3.0"},
       # oauth2
       {:pow, "~> 1.0.21"},
       {:pow_assent, "~> 0.4.10"},

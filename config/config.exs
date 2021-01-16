@@ -72,6 +72,12 @@ config :fancy_discord, :nouns, ~w(
    frost voice paper frog smoke star
 )
 
+
+config :fancy_discord, FancyDiscord.Scheduler,
+  jobs: [
+    {"*/3 * * * *", {FancyDiscord.Deploy, :refresh_active_jobs, []}},
+    {"*/2 * * * *", {FancyDiscord.Deploy, :kill_old_deploys, []}},
+  ]
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"

@@ -4,6 +4,7 @@ defmodule FancyDiscord.Schema.App do
   alias FancyDiscord.Repo
   alias FancyDiscord.Haikunator
   alias FancyDiscord.Schema.User
+  alias FancyDiscord.Schema.Machine
   import FancyDiscord.Utils
 
   @derive {Jason.Encoder, only: [:id, :project_name, :type]}
@@ -20,6 +21,7 @@ defmodule FancyDiscord.Schema.App do
     field :bot_token, :string
 
     belongs_to :user, User
+    belongs_to :machine, Machine
 
     timestamps()
   end
@@ -39,18 +41,28 @@ defmodule FancyDiscord.Schema.App do
     |> cast(attrs, [:dokku_host, :project_name, :type, :github_oauth_token, :repo_url, :default_branch, :bot_token])
     |> validate_required([:project_name, :dokku_app, :type, :github_oauth_token, :repo_url, :default_branch, :bot_token])
     |> validate_inclusion(:type, ["js"])
+    |> foreign_key_constraint([:machine_id])
     |> unique_constraint([:dokku_app])
   end
 
-  def reset_dokku_host(id) do
+  def reset_machine(%__MODULE__{id: id}) do
     __MODULE__
     |> Repo.get!(id)
-    |> internal_changeset(%{dokku_host: nil})
+    |> internal_changeset(%{machine_id: nil})
+    |> Repo.update!()
+  end
+
+  def assign_machine(%Machine{id: machine_id}, %__MODULE__{id: id}) do
+    __MODULE__
+    |> Repo.get!(id)
+    |> internal_changeset(%{machine_id: machine_id})
     |> Repo.update!()
   end
 
   def get(id) when is_uuid(id) do
-    Repo.get(__MODULE__, id)
+    id
+    |> Repo.get(__MODULE__)
+    |> with_machine()
   end
 
   def get(_) do
@@ -78,5 +90,9 @@ defmodule FancyDiscord.Schema.App do
     __MODULE__
     |> Repo.get!(id)
     |> Repo.delete!()
+  end
+
+  def with_machine(%__MODULE__{} = app) do
+    Repo.preload(app, :machine)
   end
 end

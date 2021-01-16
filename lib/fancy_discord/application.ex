@@ -13,6 +13,7 @@ defmodule FancyDiscord.Application do
       FancyDiscordWeb.Telemetry,
       # Start the PubSub system
       {Phoenix.PubSub, name: FancyDiscord.PubSub},
+      FancyDiscord.Scheduler,
       # Start the Endpoint (http/https)
       FancyDiscordWeb.Endpoint
       # Start a worker by calling: FancyDiscord.Worker.start_link(arg)

@@ -57,4 +57,22 @@ defmodule FancyDiscord.Schema.Job do
     |> first([desc: :inserted_at])
     |> Repo.one()
   end
+
+  def active_jobs do
+    __MODULE__
+    |> lock("FOR UPDATE")
+    |> where([j], j.status in ["running", "pending"])
+    |> order_by([asc: :inserted_at])
+    |> limit(5)
+    |> Repo.all()
+  end
+
+  def old_success_jobs do
+    __MODULE__
+    |> lock("FOR UPDATE")
+    |> where([j], j.status in ["success"] and j.finished_at < datetime_add(^NaiveDateTime.utc_now(), -4, "hour"))
+    |> order_by([asc: :inserted_at])
+    |> limit(5)
+    |> Repo.all()
+  end
 end
