@@ -62,8 +62,7 @@ defmodule FancyDiscord.Schema.App do
   end
 
   def get(id) when is_uuid(id) do
-    id
-    |> Repo.get(__MODULE__)
+    Repo.get(__MODULE__, id)
     |> with_machine()
   end
 

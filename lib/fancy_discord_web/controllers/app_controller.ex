@@ -2,6 +2,7 @@ defmodule FancyDiscordWeb.AppController do
   use FancyDiscordWeb, :controller
   alias FancyDiscord.Schema.App
   alias FancyDiscord.Schema.User
+  alias FancyDiscord.Deploy
   alias FancyDiscord.Utils
 
   def list(%{assigns: %{current_user: %User{} = user}} = conn, _) do

@@ -16,6 +16,10 @@ To start your Phoenix server:
 - [x] Add case for `FancyDiscord.Deploy.start_deploy/1` when app's machine is nil
 - [x] Kill deploys older than 4 hours (jobs that succeeded more than 4 hours ago), remove apps from dokku machine and reset apps' machine field so it can be deployed on new machine later
 - [x] Discord auth
+- [ ] Add plug for checking if app exists in user
+- [ ] Init deploy on deploy start if app was not initialized
+- [ ] Add changing app type and handle it gracefully
+- [ ] Add destroy app
 - [ ] Detect necessary buildpacks
 - [ ] Add getting stdout from bots machines with Vector.dev and NATS
 - [ ] Add Discord webhook notifications about job status and deploy removal
