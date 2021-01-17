@@ -7,7 +7,7 @@ defmodule FancyDiscord.Schema.App do
   alias FancyDiscord.Schema.Machine
   import FancyDiscord.Utils
 
-  @derive {Jason.Encoder, only: [:id, :project_name, :type, :repo_url, :default_branch, :has_bot_token]}
+  @derive {Jason.Encoder, only: [:id, :project_name, :type, :repo_url, :default_branch, :has_bot_token, :deployed]}
   @primary_key {:id, :binary_id, [autogenerate: true]}
   @foreign_key_type :binary_id
   schema "apps" do
@@ -20,6 +20,7 @@ defmodule FancyDiscord.Schema.App do
     field :default_branch, :string, default: "main"
     field :bot_token, :string
     field :has_bot_token, :boolean, virtual: true
+    field :deployed, :boolean, virtual: true
 
     belongs_to :user, User
     belongs_to :machine, Machine
@@ -101,8 +102,9 @@ defmodule FancyDiscord.Schema.App do
     Enum.map(apps, &fill_virtual_fields/1)
   end
 
-  def fill_virtual_fields(%__MODULE__{bot_token: bot_token} = app) do
+  def fill_virtual_fields(%__MODULE__{bot_token: bot_token, machine_id: machine_id} = app) do
     app
     |> Map.put(:has_bot_token, bot_token != nil)
+    |> Map.put(:deployed, machine_id != nil)
   end
 end
