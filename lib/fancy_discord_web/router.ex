@@ -53,6 +53,7 @@ defmodule FancyDiscordWeb.Router do
 
     post "/apps/:app_id/deploys/destroy", DeployController, :destroy
     post "/apps/:app_id/deploys", DeployController, :create
+    post "/apps/:app_id/deploys/init", DeployController, :init
     get "/apps/:app_id/deploys/last", DeployController, :last_details
   end
 

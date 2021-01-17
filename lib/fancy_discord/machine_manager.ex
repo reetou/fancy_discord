@@ -4,15 +4,24 @@ defmodule FancyDiscord.MachineManager do
   alias FancyDiscord.Repo
 
   def occupy_first_available(app) do
-    {:ok, _} = Repo.transaction(fn ->
-      Machine.first_available()
-      |> Machine.inc_deployed(1)
-      |> App.assign_machine(app)
+    Repo.transaction(fn ->
+      case Machine.first_available() do
+        nil -> Repo.rollback(:no_available_machine)
+        %Machine{} = machine ->
+          machine
+          |> Machine.inc_deployed(1)
+          |> App.assign_machine(app)
+      end
     end)
+    |> case do
+         {:ok, app} -> app
+         e -> e
+       end
   end
 
-  def release_machine(app, ip) do
+  def release_machine(%App{} = app) do
     {:ok, _} = Repo.transaction(fn ->
+      %App{machine: %Machine{ip: ip}} = App.with_machine(app)
       ip
       |> Machine.by_ip()
       |> Machine.inc_deployed(-1)

@@ -27,7 +27,7 @@ config :cors_plug,
 config :fancy_discord,
   user_token_salt: "dasdsadmk2332bhfsduh12elkme21ejk12gyuafjknfasfasjkfsadfas",
   session_key: "_fancy_discord_key",
-  redirect_after_login_url: "http://localhost:3000"
+  redirect_after_login_url: "http://localhost:3000/apps"
 config :fancy_discord, :gitlab,
   project_id: System.get_env("GITLAB_PROJECT_ID"),
   project_access_token: System.get_env("GITLAB_PROJECT_ACCESS_TOKEN"),
@@ -86,7 +86,7 @@ config :fancy_discord, :nouns, ~w(
 
 config :fancy_discord, FancyDiscord.Scheduler,
   jobs: [
-    {"*/3 * * * *", {FancyDiscord.Deploy, :refresh_active_jobs, []}},
+    {"*/2 * * * *", {FancyDiscord.Deploy, :refresh_active_jobs, []}},
     {"*/2 * * * *", {FancyDiscord.Deploy, :kill_old_deploys, []}},
   ]
 # Import environment specific config. This must remain at the bottom

@@ -7,6 +7,7 @@ defmodule FancyDiscord do
   if it comes from the database, an external API or others.
   """
 
+  alias FancyDiscord.Schema.App
   alias FancyDiscord.Gitlab
   require Logger
 
@@ -37,6 +38,7 @@ defmodule FancyDiscord do
   end
 
   def destroy_bot(data) do
+    IO.inspect(data, label: "At destroy")
     try do
       Gitlab.Job.start_build(%{
         variables: build_variables(data, :destroy)
@@ -49,22 +51,28 @@ defmodule FancyDiscord do
     end
   end
 
-  def build_variables(%{dokku_app: dokku_app, machine: %{ip: ip}, repo_url: repo_url, default_branch: default_branch}, action) when action in [:destroy, :create] do
+  def build_variables(%App{dokku_app: dokku_app, type: type, machine: %{ip: ip}, repo_url: repo_url, default_branch: default_branch}, action) when action in [:destroy, :create] do
     [
       %{key: "DOKKU_APP", variable_type: "env_var", value: dokku_app},
       %{key: "DOKKU_HOST", variable_type: "env_var", value: ip},
       %{key: "REPO_URL", variable_type: "env_var", value: repo_url},
       %{key: "DEFAULT_BRANCH", variable_type: "env_var", value: default_branch},
+      %{key: "BUILDPACK_URL", variable_type: "env_var", value: buildpack_by_type(type)},
     ]
   end
 
-  def build_variables(%{bot_token: token, dokku_app: dokku_app, machine: %{ip: ip}, repo_url: repo_url, default_branch: default_branch}, action) when action in [:deploy] do
+  def build_variables(%App{bot_token: token, dokku_app: dokku_app, type: type, machine: %{ip: ip}, repo_url: repo_url, default_branch: default_branch}, action) when action in [:deploy] do
     [
       %{key: "BOT_TOKEN", variable_type: "env_var", value: token},
       %{key: "DOKKU_APP", variable_type: "env_var", value: dokku_app},
       %{key: "DOKKU_HOST", variable_type: "env_var", value: ip},
       %{key: "REPO_URL", variable_type: "env_var", value: repo_url},
       %{key: "DEFAULT_BRANCH", variable_type: "env_var", value: default_branch},
+      %{key: "BUILDPACK_URL", variable_type: "env_var", value: buildpack_by_type(type)},
     ]
+  end
+
+  def buildpack_by_type(type) when type in ["js"] do
+    "https://github.com/heroku/heroku-buildpack-nodejs"
   end
 end

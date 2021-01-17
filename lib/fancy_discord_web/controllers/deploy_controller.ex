@@ -6,7 +6,7 @@ defmodule FancyDiscordWeb.DeployController do
   alias FancyDiscord.Schema.User
 
   def last_details(%{assigns: %{current_user: %User{} = user}} = conn, %{"app_id" => app_id}) do
-    case Deploy.last_job_details(%{app_id: app_id}) do
+    case Deploy.last_deploy_details(%{app_id: app_id}) do
       %Job{} = job ->
         render(conn, "job.json", %{job: job})
       nil ->
@@ -19,8 +19,13 @@ defmodule FancyDiscordWeb.DeployController do
   def init(%{assigns: %{current_user: %User{} = user}} = conn, %{"app_id" => app_id}) do
     case Deploy.init_app?(%{app_id: app_id}) do
       true ->
-        job = Deploy.start_init_job(%{app_id: app_id})
-        render(conn, "job.json", %{job: job})
+        case Deploy.start_init_job(%{app_id: app_id}) do
+          %Job{} = job -> render(conn, "job.json", %{job: job})
+          {:error, :no_available_machine} ->
+            conn
+            |> put_status(400)
+            |> json(%{errors: %{data: "No available machine, try again later"}})
+        end
       false ->
         conn
         |> put_status(400)
@@ -29,21 +34,26 @@ defmodule FancyDiscordWeb.DeployController do
   end
 
   def create(%{assigns: %{current_user: %User{} = user}} = conn, %{"app_id" => app_id}) do
-    case Deploy.can_start_new?(%{app_id: app_id}) do
-      true ->
-        job = Deploy.start_deploy(%{app_id: app_id})
-        render(conn, "job.json", %{job: job})
-      false ->
+    case Deploy.maybe_deploy(%{app_id: app_id}) do
+      {:error, :no_available_machine} ->
         conn
         |> put_status(400)
-        |> json(%{errors: %{data: "App not initialized or there is a build in progress"}})
+        |> json(%{errors: %{data: "No available machine, try again later"}})
+      {:error, :deploy_in_progress} ->
+        conn
+        |> put_status(400)
+        |> json(%{errors: %{data: "App is still being initialized or there is a build in progress already"}})
+      %Job{} = job -> render(conn, "job.json", %{job: job})
     end
   end
 
   def destroy(%{assigns: %{current_user: %User{} = user}} = conn, %{"app_id" => app_id}) do
     case App.get_in_user(user, app_id) do
-      %App{} ->
-        {:ok, _} = Deploy.kill_deploy(%{app_id: app_id})
+      %App{id: id} = app ->
+        {:ok, _} =
+          id
+          |> App.get()
+          |> Deploy.kill_deploy()
         json(conn, %{})
       nil ->
         conn

@@ -1,13 +1,14 @@
 defmodule FancyDiscord.Schema.App do
   use Ecto.Schema
   import Ecto.Changeset
+  import Ecto.Query
   alias FancyDiscord.Repo
   alias FancyDiscord.Haikunator
   alias FancyDiscord.Schema.User
   alias FancyDiscord.Schema.Machine
   import FancyDiscord.Utils
 
-  @derive {Jason.Encoder, only: [:id, :project_name, :type, :repo_url, :default_branch, :has_bot_token, :deployed]}
+  @derive {Jason.Encoder, only: [:id, :project_name, :type, :repo_url, :default_branch, :has_bot_token, :deployed, :last_deploy_at]}
   @primary_key {:id, :binary_id, [autogenerate: true]}
   @foreign_key_type :binary_id
   schema "apps" do
@@ -19,6 +20,7 @@ defmodule FancyDiscord.Schema.App do
     field :dokku_host, :string
     field :default_branch, :string, default: "main"
     field :bot_token, :string
+    field :last_deploy_at, :naive_datetime
     field :has_bot_token, :boolean, virtual: true
     field :deployed, :boolean, virtual: true
 
@@ -41,17 +43,17 @@ defmodule FancyDiscord.Schema.App do
 
   def internal_changeset(module, attrs) do
     module
-    |> cast(attrs, [:dokku_host, :project_name, :type, :github_oauth_token, :repo_url, :default_branch, :bot_token])
-    |> validate_required([:project_name, :dokku_app, :type, :github_oauth_token, :repo_url, :default_branch, :bot_token])
+    |> cast(attrs, [:dokku_host, :project_name, :type, :github_oauth_token, :repo_url, :default_branch, :bot_token, :last_deploy_at, :machine_id])
+    |> validate_required([:project_name, :dokku_app, :type, :repo_url, :default_branch, :bot_token])
     |> validate_inclusion(:type, ["js"])
-    |> foreign_key_constraint([:machine_id])
+    |> foreign_key_constraint(:machine_id)
     |> unique_constraint([:dokku_app])
   end
 
   def reset_machine(%__MODULE__{id: id}) do
     __MODULE__
     |> Repo.get!(id)
-    |> internal_changeset(%{machine_id: nil})
+    |> internal_changeset(%{machine_id: nil, last_deploy_at: nil})
     |> Repo.update!()
   end
 
@@ -59,6 +61,13 @@ defmodule FancyDiscord.Schema.App do
     __MODULE__
     |> Repo.get!(id)
     |> internal_changeset(%{machine_id: machine_id})
+    |> Repo.update!()
+  end
+
+  def deploy_update(id) do
+    __MODULE__
+    |> Repo.get!(id)
+    |> internal_changeset(%{last_deploy_at: DateTime.utc_now()})
     |> Repo.update!()
   end
 
@@ -106,5 +115,12 @@ defmodule FancyDiscord.Schema.App do
     app
     |> Map.put(:has_bot_token, bot_token != nil)
     |> Map.put(:deployed, machine_id != nil)
+  end
+
+  def last_deployed_apps do
+    __MODULE__
+    |> where([a], not is_nil(a.machine_id) and a.last_deploy_at < datetime_add(^NaiveDateTime.utc_now(), -4, "hour"))
+    |> limit(5)
+    |> Repo.all()
   end
 end

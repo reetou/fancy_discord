@@ -38,20 +38,22 @@ defmodule FancyDiscord.Schema.Machine do
     |> Repo.insert()
   end
 
-  def inc_deployed(%{ip: ip}, val) do
-    inc_deployed(ip, val)
-  end
-
-  def inc_deployed(ip, val) do
-    from(u in __MODULE__, where: u.ip == ^ip)
+  def inc_deployed(%__MODULE__{ip: ip} = machine, val) do
+    {_updated_count, _} = from(u in __MODULE__, where: u.ip == ^ip)
     |> Repo.update_all([inc: [deployed_apps: val], set: [updated_at: DateTime.utc_now()]])
+    machine
   end
 
   def first_available do
     __MODULE__
     |> where([m], m.maximum_apps > m.deployed_apps)
-    |> first(desc: :updated_at)
+    |> order_by(asc: :updated_at)
     |> lock("FOR UPDATE")
-    |> Repo.one()
+    |> limit(1)
+    |> Repo.all()
+    |> case do
+        [] -> nil
+        [machine] -> machine
+       end
   end
 end

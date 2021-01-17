@@ -17,6 +17,9 @@ defmodule FancyDiscordWeb.AppController do
     with %User{app_limit: limit, apps: apps} <- User.with_apps(user),
          true <- length(apps) < limit,
          {:ok, %App{} = app} <- App.create(params, user_id) do
+      Task.start(fn ->
+        Deploy.start_init_job(%{app_id: app.id})
+      end)
       render(conn, "app.json", %{app: app})
     else
       false ->
