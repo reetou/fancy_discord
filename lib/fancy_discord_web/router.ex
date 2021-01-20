@@ -63,14 +63,13 @@ defmodule FancyDiscordWeb.Router do
     post "/job_status_update", GitlabController, :job_status_update
   end
 
-  scope "/" do
-    pipe_through :skip_csrf_protection
-
-  end
-
-  scope "/" do
+  scope "/", PowAssent.Phoenix, as: "pow_assent" do
     pipe_through [:browser]
-    pow_assent_authorization_routes()
+
+    Pow.Phoenix.Router.pow_resources "/auth/:provider", AuthorizationController, singleton: true, only: [:new]
+    Pow.Phoenix.Router.pow_route :get, "/auth/:provider/callback", AuthorizationController, :callback
+    Pow.Phoenix.Router.pow_route :get, "/:provider/add-user-id", RegistrationController, :add_user_id
+    Pow.Phoenix.Router.pow_route :post, "/:provider/create", RegistrationController, :create
   end
 
   # Other scopes may use custom stacks.
