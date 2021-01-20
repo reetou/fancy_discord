@@ -8,6 +8,8 @@ defmodule FancyDiscord.Deploy do
   alias FancyDiscord.MachineManager
   require Logger
 
+  @destroy_job_name Gitlab.job(:destroy_dokku_app)
+
   def start_init_job(%{app_id: app_id}) do
     app_id
     |> App.get()
@@ -141,7 +143,7 @@ defmodule FancyDiscord.Deploy do
       |> maybe_update_app_deploy_date()
   end
 
-  def maybe_update_app_deploy_date(%Job{status: "success", app_id: app_id} = job) do
+  def maybe_update_app_deploy_date(%Job{status: "success", app_id: app_id, name: name} = job) when name != @destroy_job_name do
     App.deploy_update(app_id)
     job
   end
