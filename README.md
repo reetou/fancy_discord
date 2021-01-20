@@ -18,7 +18,7 @@ To start your Phoenix server:
 - [x] Discord auth
 - [x] Handle case when there are no available machines
 - [x] Attempt init app on app create
-- [ ] Dont update last_deploy_at when app was destroyed
+- [x] Dont update last_deploy_at when app was destroyed
 - [ ] Add plug for checking if app exists in user
 - [ ] Init deploy on deploy start if app was not initialized
 - [ ] Add changing app type and handle it gracefully
