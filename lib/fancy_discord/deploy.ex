@@ -85,13 +85,27 @@ defmodule FancyDiscord.Deploy do
     Job.last_created(app_id)
   end
 
+  def app_status(%{app_id: app_id}) do
+    init_job_name = Gitlab.job(:create_dokku_app)
+    destroy_job_name = Gitlab.job(:destroy_dokku_app)
+    case Job.last_created(app_id) do
+      nil -> :init_required
+      %Job{status: "failed", name: ^init_job_name} -> :init_failed
+      %Job{status: status, name: ^init_job_name} when status in ["running", "pending"] -> :init_in_progress
+      %Job{status: status, name: ^init_job_name} when status in ["success"] -> :init_success
+      %Job{status: status, name: ^destroy_job_name} when status in ["running", "pending"] -> :destroy_in_progress
+      %Job{status: status, name: name} when name != init_job_name and status in ["running", "pending"] -> :deploy_in_progress
+      _ -> :free
+    end
+  end
+
   def last_deploy_details(%{app_id: app_id}) do
     Job.last_deploy(app_id)
   end
 
   def can_start_new?(%{app_id: app_id}) do
     init_job_name = Gitlab.job(:create_dokku_app)
-    case Job.last_created(app_id) |> IO.inspect(label: "Last created") do
+    case Job.last_created(app_id) do
       nil -> true
       %Job{status: status, name: ^init_job_name} when status in ["success"] -> true
       %Job{status: status, name: name} when name != init_job_name and status not in ["running", "pending"] -> true

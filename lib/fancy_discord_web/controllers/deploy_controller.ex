@@ -4,6 +4,11 @@ defmodule FancyDiscordWeb.DeployController do
   alias FancyDiscord.Schema.Job
   alias FancyDiscord.Schema.App
   alias FancyDiscord.Schema.User
+  alias FancyDiscordWeb.Plugs.CheckAppOwner
+  alias FancyDiscordWeb.Plugs.CheckAvailableMachine
+
+  plug CheckAppOwner
+  plug CheckAvailableMachine when action in [:create, :init]
 
   def last_details(%{assigns: %{current_user: %User{} = user}} = conn, %{"app_id" => app_id}) do
     case Deploy.last_deploy_details(%{app_id: app_id}) do
@@ -12,7 +17,7 @@ defmodule FancyDiscordWeb.DeployController do
       nil ->
         conn
         |> put_status(404)
-        |> json(%{errors: %{data: "No jobs. App was not initialized probably"}})
+        |> json(%{errors: %{data: "No jobs yet."}})
     end
   end
 

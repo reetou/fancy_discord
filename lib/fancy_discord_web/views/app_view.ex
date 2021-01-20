@@ -15,7 +15,7 @@ defmodule FancyDiscordWeb.AppView do
     %{apps: App.fill_virtual_fields(apps)}
   end
 
-  def render("app.json", %{app: app}) do
-    %{app: App.fill_virtual_fields(app)}
+  def render("app.json", %{app: app} = assigns) do
+    %{app: App.fill_virtual_fields(app, assigns)}
   end
 end

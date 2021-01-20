@@ -8,7 +8,7 @@ defmodule FancyDiscord.Schema.App do
   alias FancyDiscord.Schema.Machine
   import FancyDiscord.Utils
 
-  @derive {Jason.Encoder, only: [:id, :project_name, :type, :repo_url, :default_branch, :has_bot_token, :deployed, :last_deploy_at]}
+  @derive {Jason.Encoder, only: [:id, :project_name, :type, :repo_url, :default_branch, :has_bot_token, :deployed, :last_deploy_at, :plan, :status]}
   @primary_key {:id, :binary_id, [autogenerate: true]}
   @foreign_key_type :binary_id
   schema "apps" do
@@ -23,6 +23,7 @@ defmodule FancyDiscord.Schema.App do
     field :last_deploy_at, :naive_datetime
     field :has_bot_token, :boolean, virtual: true
     field :deployed, :boolean, virtual: true
+    field :status, :string, virtual: true
     field :plan, :integer, default: 0
 
     belongs_to :user, User
@@ -36,6 +37,15 @@ defmodule FancyDiscord.Schema.App do
     |> cast(attrs, [:project_name, :type, :github_oauth_token, :repo_url, :default_branch, :bot_token, :user_id])
     |> change(%{dokku_app: Haikunator.build(9999)})
     |> validate_inclusion(:type, ["js"])
+    |> foreign_key_constraint(:user_id)
+    |> cast_assoc(:user)
+    |> validate_required([:project_name, :dokku_app, :type, :repo_url, :default_branch, :bot_token, :user_id])
+    |> unique_constraint([:dokku_app])
+  end
+
+  def update_changeset(module, attrs) do
+    module
+    |> cast(attrs, [:project_name, :github_oauth_token, :repo_url, :default_branch, :bot_token])
     |> foreign_key_constraint(:user_id)
     |> cast_assoc(:user)
     |> validate_required([:project_name, :dokku_app, :type, :repo_url, :default_branch, :bot_token, :user_id])
@@ -98,6 +108,12 @@ defmodule FancyDiscord.Schema.App do
     |> Repo.insert()
   end
 
+  def update(%__MODULE__{} = app, attrs) do
+    app
+    |> update_changeset(attrs)
+    |> Repo.update()
+  end
+
   def delete(id) do
     __MODULE__
     |> Repo.get!(id)
@@ -115,7 +131,28 @@ defmodule FancyDiscord.Schema.App do
   def fill_virtual_fields(%__MODULE__{bot_token: bot_token, machine_id: machine_id} = app) do
     app
     |> Map.put(:has_bot_token, bot_token != nil)
-    |> Map.put(:deployed, machine_id != nil)
+    |> deployed()
+  end
+
+  def fill_virtual_fields(%__MODULE__{} = app, %{status: status}) do
+    app
+    |> fill_virtual_fields()
+    |> Map.put(:status, status)
+    |> deployed()
+  end
+
+  def fill_virtual_fields(%__MODULE__{} = app, _), do: fill_virtual_fields(app)
+
+  def deployed(%__MODULE__{status: status} = app) when status in [:init_failed, :init_in_progress, :destroy_in_progress, :init_required] do
+    %__MODULE__{app | deployed: false}
+  end
+
+  def deployed(%__MODULE__{machine_id: nil} = app) do
+    %__MODULE__{app | deployed: false}
+  end
+
+  def deployed(%__MODULE__{} = app) do
+    %__MODULE__{app | deployed: true}
   end
 
   def last_deployed_apps do

@@ -3,6 +3,10 @@ defmodule FancyDiscord.MachineManager do
   alias FancyDiscord.Schema.App
   alias FancyDiscord.Repo
 
+  def has_available? do
+    not is_nil(Machine.first_available())
+  end
+
   def occupy_first_available(app) do
     Repo.transaction(fn ->
       case Machine.first_available() do

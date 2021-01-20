@@ -43,12 +43,13 @@ defmodule FancyDiscordWeb.Router do
     pipe_through :api
     pipe_through :api_protected
 
+    get "/", AuthController, :success
     get "/auth/check", AuthController, :check
-    get "/auth/success", AuthController, :success
 
     post "/apps", AppController, :create
     get "/apps", AppController, :list
     delete "/apps/:app_id", AppController, :delete
+    put "/apps/:app_id", AppController, :update
     get "/apps/:app_id", AppController, :show
 
     post "/apps/:app_id/deploys/destroy", DeployController, :destroy
@@ -63,11 +64,11 @@ defmodule FancyDiscordWeb.Router do
     post "/job_status_update", GitlabController, :job_status_update
   end
 
-  scope "/", PowAssent.Phoenix, as: "pow_assent" do
+  scope "/auth", PowAssent.Phoenix, as: "pow_assent" do
     pipe_through [:browser]
 
-    Pow.Phoenix.Router.pow_resources "/auth/:provider", AuthorizationController, singleton: true, only: [:new]
-    Pow.Phoenix.Router.pow_route :get, "/auth/:provider/callback", AuthorizationController, :callback
+    Pow.Phoenix.Router.pow_resources "/:provider", AuthorizationController, singleton: true, only: [:new]
+    Pow.Phoenix.Router.pow_route :get, "/:provider/callback", AuthorizationController, :callback
     Pow.Phoenix.Router.pow_route :get, "/:provider/add-user-id", RegistrationController, :add_user_id
     Pow.Phoenix.Router.pow_route :post, "/:provider/create", RegistrationController, :create
   end
