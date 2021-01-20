@@ -23,6 +23,7 @@ defmodule FancyDiscord.Schema.App do
     field :last_deploy_at, :naive_datetime
     field :has_bot_token, :boolean, virtual: true
     field :deployed, :boolean, virtual: true
+    field :plan, :integer, default: 0
 
     belongs_to :user, User
     belongs_to :machine, Machine
@@ -43,8 +44,8 @@ defmodule FancyDiscord.Schema.App do
 
   def internal_changeset(module, attrs) do
     module
-    |> cast(attrs, [:dokku_host, :project_name, :type, :github_oauth_token, :repo_url, :default_branch, :bot_token, :last_deploy_at, :machine_id])
-    |> validate_required([:project_name, :dokku_app, :type, :repo_url, :default_branch, :bot_token])
+    |> cast(attrs, [:dokku_host, :project_name, :type, :github_oauth_token, :repo_url, :default_branch, :bot_token, :last_deploy_at, :machine_id, :plan])
+    |> validate_required([:project_name, :dokku_app, :type, :repo_url, :default_branch, :bot_token, :plan])
     |> validate_inclusion(:type, ["js"])
     |> foreign_key_constraint(:machine_id)
     |> unique_constraint([:dokku_app])
@@ -119,7 +120,7 @@ defmodule FancyDiscord.Schema.App do
 
   def last_deployed_apps do
     __MODULE__
-    |> where([a], not is_nil(a.machine_id) and a.last_deploy_at < datetime_add(^NaiveDateTime.utc_now(), -4, "hour"))
+    |> where([a], not is_nil(a.machine_id) and a.last_deploy_at < datetime_add(^NaiveDateTime.utc_now(), -4, "hour") and a.plan in [0])
     |> limit(5)
     |> Repo.all()
   end

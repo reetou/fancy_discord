@@ -19,6 +19,7 @@ To start your Phoenix server:
 - [x] Handle case when there are no available machines
 - [x] Attempt init app on app create
 - [x] Dont update last_deploy_at when app was destroyed
+- [x] Add premium apps and dont destroy em
 - [ ] Add plug for checking if app exists in user
 - [ ] Init deploy on deploy start if app was not initialized
 - [ ] Add changing app type and handle it gracefully
