@@ -24,8 +24,7 @@ To start your Phoenix server:
 - [x] Add app status to show proper details and messages depending on it
 - [x] Add update app settings
 - [x] Add plug for checking if app exists in user
-- [ ] Init deploy on deploy start if app was not initialized
-- [ ] Add changing app type and handle it gracefully
+- [ ] Disable Dokku zero downtime deployments on create `checks:disable <app>`
 - [x] Add destroy app
 - [x] Detect necessary buildpacks
 - [x] Job logs
@@ -34,3 +33,5 @@ To start your Phoenix server:
 - [ ] Encrypt bot tokens when sending over the network
 - [ ] Add tests to apps creation and deploy scenarios
 - [ ] Configurable cron jobs for bots for sending messages to channels via service
+- [ ] Init deploy on deploy start if app was not initialized
+- [ ] Add changing app type and handle it gracefully
