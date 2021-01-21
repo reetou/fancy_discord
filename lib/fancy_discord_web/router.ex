@@ -54,7 +54,6 @@ defmodule FancyDiscordWeb.Router do
 
     post "/apps", AppController, :create
     get "/apps", AppController, :list
-    delete "/apps/:app_id", AppController, :delete
     put "/apps/:app_id", AppController, :update
     get "/apps/:app_id", AppController, :show
 

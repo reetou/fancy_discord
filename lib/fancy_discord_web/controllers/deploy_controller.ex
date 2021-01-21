@@ -6,9 +6,11 @@ defmodule FancyDiscordWeb.DeployController do
   alias FancyDiscord.Schema.User
   alias FancyDiscordWeb.Plugs.CheckAppOwner
   alias FancyDiscordWeb.Plugs.CheckAvailableMachine
+  alias FancyDiscordWeb.Plugs.CheckDeployLock
 
   plug CheckAppOwner
   plug CheckAvailableMachine when action in [:create, :init]
+  plug CheckDeployLock when action in [:create, :init, :destroy]
 
   def logs(%{assigns: %{current_user: %User{} = user}} = conn, %{"app_id" => app_id}) do
     with %Job{logs: logs} <- Deploy.last_deploy_details(%{app_id: app_id}) do

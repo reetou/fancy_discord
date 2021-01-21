@@ -6,11 +6,13 @@ defmodule FancyDiscord.Deploy do
   alias FancyDiscord.Repo
   alias FancyDiscord.Gitlab
   alias FancyDiscord.MachineManager
+  alias FancyDiscord.DeployLocker
   require Logger
 
   @destroy_job_name Gitlab.job(:destroy_dokku_app)
 
   def start_init_job(%{app_id: app_id}) do
+    :ok = DeployLocker.lock(app_id)
     app_id
     |> App.get()
     |> IO.inspect(label: "BEFORE assign")
@@ -44,6 +46,7 @@ defmodule FancyDiscord.Deploy do
   end
 
   def start_deploy(%{app_id: app_id}) do
+    :ok = DeployLocker.lock(app_id)
     %{
       "id" => id,
       "status" => status,
@@ -157,6 +160,7 @@ defmodule FancyDiscord.Deploy do
       Job.update(id, %{status: status, finished_at: finished})
       |> maybe_update_app_deploy_date()
       |> store_logs()
+      |> maybe_unlock()
   end
 
   def maybe_update_app_deploy_date(%Job{status: "success", app_id: app_id, name: name} = job) when name != @destroy_job_name do
@@ -177,6 +181,7 @@ defmodule FancyDiscord.Deploy do
   end
 
   def kill_deploy(%App{id: app_id, machine_id: machine_id} = app) do
+    :ok = DeployLocker.lock(app_id)
     with %{
            "id" => id,
            "status" => status,
@@ -205,23 +210,9 @@ defmodule FancyDiscord.Deploy do
     end
   end
 
-  def reset_host_by_job(%{gitlab_job_id: gitlab_job_id}) do
-    with %Job{app_id: app_id} <- Job.get_by(gitlab_job_id: gitlab_job_id),
-         %App{} = app <- App.get(app_id) do
-      %App{} = App.reset_machine(app)
-    else
-      nil -> {:error, :not_found}
-    end
-  end
-
   def gitlab_job_status_update(%{"id" => id, "pipeline" => %{"id" => pipeline_id}, "name" => name}) do
     destroy_app_job_name = Gitlab.job(:destroy_dokku_app)
-    case name do
-      name when destroy_app_job_name == name ->
-        reset_host_by_job(%{gitlab_job_id: id})
-      name ->
-        refresh_job_status(pipeline_id, name)
-    end
+    refresh_job_status(pipeline_id, name)
   end
 
   def store_logs(%Job{id: id} = job) do
@@ -255,4 +246,11 @@ defmodule FancyDiscord.Deploy do
 
   def filter_log_line("remote:" <> _), do: true
   def filter_log_line(_), do: false
+
+  def maybe_unlock(%Job{app_id: app_id, status: status} = job) when status in ["canceled", "success", "failed"] do
+    :ok = DeployLocker.unlock(app_id)
+    job
+  end
+
+  def maybe_unlock(%Job{} = job), do: job
 end

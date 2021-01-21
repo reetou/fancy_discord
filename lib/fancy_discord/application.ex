@@ -9,6 +9,7 @@ defmodule FancyDiscord.Application do
     children = [
       # Start the Ecto repository
       FancyDiscord.Repo,
+      FancyDiscord.DeployLocker,
       # Start the Telemetry supervisor
       FancyDiscordWeb.Telemetry,
       # Start the PubSub system
