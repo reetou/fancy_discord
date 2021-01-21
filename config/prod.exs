@@ -14,6 +14,7 @@ config :fancy_discord, FancyDiscordWeb.Endpoint,
   cache_static_manifest: "priv/static/cache_manifest.json"
 
 config :fancy_discord,
+  cookie_domain: "fancy-discord.com",
   redirect_after_login_url: "https://fancy-discord.com/apps"
 # Do not print debug messages in production
 config :logger, level: :info
