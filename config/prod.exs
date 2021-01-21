@@ -13,6 +13,8 @@ config :fancy_discord, FancyDiscordWeb.Endpoint,
   url: [host: "api.fancy-discord.com", port: 80],
   cache_static_manifest: "priv/static/cache_manifest.json"
 
+config :fancy_discord,
+  redirect_after_login_url: "https://fancy-discord.com/apps"
 # Do not print debug messages in production
 config :logger, level: :info
 config :cors_plug, origin: ["https://fancy-discord.com"]
