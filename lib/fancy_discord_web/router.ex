@@ -41,6 +41,12 @@ defmodule FancyDiscordWeb.Router do
 
   scope "/", FancyDiscordWeb do
     pipe_through :api
+
+    get "/public/stats", PublicController, :stats
+  end
+
+  scope "/", FancyDiscordWeb do
+    pipe_through :api
     pipe_through :api_protected
 
     get "/", AuthController, :success
@@ -56,6 +62,7 @@ defmodule FancyDiscordWeb.Router do
     post "/apps/:app_id/deploys", DeployController, :create
     post "/apps/:app_id/deploys/init", DeployController, :init
     get "/apps/:app_id/deploys/last", DeployController, :last_details
+    get "/apps/:app_id/deploys/last/logs", DeployController, :logs
   end
 
   scope "/webhooks/gitlab", FancyDiscordWeb do

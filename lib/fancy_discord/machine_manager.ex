@@ -7,6 +7,10 @@ defmodule FancyDiscord.MachineManager do
     not is_nil(Machine.first_available())
   end
 
+  def available_machines do
+    Machine.available_count()
+  end
+
   def occupy_first_available(app) do
     Repo.transaction(fn ->
       case Machine.first_available() do

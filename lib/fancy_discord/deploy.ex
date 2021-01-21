@@ -90,6 +90,7 @@ defmodule FancyDiscord.Deploy do
     destroy_job_name = Gitlab.job(:destroy_dokku_app)
     case Job.last_created(app_id) do
       nil -> :init_required
+      %Job{status: status, name: ^destroy_job_name} when status in ["success"] -> :init_required
       %Job{status: "failed", name: ^init_job_name} -> :init_failed
       %Job{status: status, name: ^init_job_name} when status in ["running", "pending"] -> :init_in_progress
       %Job{status: status, name: ^init_job_name} when status in ["success"] -> :init_success
@@ -155,6 +156,7 @@ defmodule FancyDiscord.Deploy do
     %Job{} =
       Job.update(id, %{status: status, finished_at: finished})
       |> maybe_update_app_deploy_date()
+      |> store_logs()
   end
 
   def maybe_update_app_deploy_date(%Job{status: "success", app_id: app_id, name: name} = job) when name != @destroy_job_name do
@@ -221,4 +223,36 @@ defmodule FancyDiscord.Deploy do
         refresh_job_status(pipeline_id, name)
     end
   end
+
+  def store_logs(%Job{id: id} = job) do
+    case extract_logs(job) do
+      logs when is_binary(logs) ->
+        Job.update(id, %{logs: logs})
+      e ->
+        Logger.error("Cannot get logs #{inspect e}")
+        job
+    end
+    job
+  end
+
+  def extract_logs(%Job{gitlab_job_id: id} = job) do
+    case Gitlab.Job.job_logs(id) do
+      x when is_binary(x) ->
+        x
+        |> String.split("\n")
+        |> filter_logs()
+        |> Enum.slice(-10..-1)
+        |> Enum.join("\n")
+      x -> x
+    end
+  end
+
+  def filter_logs([]), do: ""
+
+  def filter_logs(logs) do
+    Enum.filter(logs, &filter_log_line/1)
+  end
+
+  def filter_log_line("remote:" <> _), do: true
+  def filter_log_line(_), do: false
 end

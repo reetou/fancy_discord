@@ -10,6 +10,18 @@ defmodule FancyDiscordWeb.DeployController do
   plug CheckAppOwner
   plug CheckAvailableMachine when action in [:create, :init]
 
+  def logs(%{assigns: %{current_user: %User{} = user}} = conn, %{"app_id" => app_id}) do
+    with %Job{logs: logs} <- Deploy.last_deploy_details(%{app_id: app_id}) do
+      conn
+      |> text(logs)
+    else
+      nil ->
+        conn
+        |> put_status(404)
+        |> json(%{errors: %{data: "Not Found"}})
+    end
+  end
+
   def last_details(%{assigns: %{current_user: %User{} = user}} = conn, %{"app_id" => app_id}) do
     case Deploy.last_deploy_details(%{app_id: app_id}) do
       %Job{} = job ->

@@ -11,7 +11,10 @@ defmodule FancyDiscord.Gitlab.Job do
 
   defp extract_body({:ok, %HTTPoison.Response{status_code: code, body: body}})
        when code in [200, 201] do
-    Jason.decode!(body)
+    case Jason.decode(body) do
+      {:ok, data} -> data
+      {:error, _} -> body
+    end
   end
 
   defp extract_body({:ok, response}) do
@@ -66,6 +69,12 @@ defmodule FancyDiscord.Gitlab.Job do
   def play_job(%{"id" => job_id}) do
     "https://gitlab.com/api/v4/projects/#{Gitlab.project_id()}/jobs/#{job_id}/play"
     |> HTTPoison.post("", headers())
+    |> extract_body()
+  end
+
+  def job_logs(id) do
+    "https://gitlab.com/api/v4/projects/#{Gitlab.project_id()}/jobs/#{id}/trace"
+    |> HTTPoison.get(headers())
     |> extract_body()
   end
 end

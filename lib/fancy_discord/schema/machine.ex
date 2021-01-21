@@ -56,4 +56,13 @@ defmodule FancyDiscord.Schema.Machine do
         [machine] -> machine
        end
   end
+
+  def available_count do
+    __MODULE__
+    |> where([m], m.maximum_apps > m.deployed_apps)
+    |> order_by(asc: :updated_at)
+    |> Repo.all()
+    |> Enum.map(fn %{maximum_apps: max_apps, deployed_apps: deployed_apps} -> max_apps - deployed_apps end)
+    |> Enum.sum()
+  end
 end

@@ -15,6 +15,7 @@ defmodule FancyDiscord.Schema.Job do
     field :gitlab_pipeline_id, :integer
     field :created_at, :naive_datetime
     field :finished_at, :naive_datetime
+    field :logs, :string, default: ""
 
     belongs_to :app, App, type: :binary_id
 
@@ -23,7 +24,7 @@ defmodule FancyDiscord.Schema.Job do
 
   def changeset(module, attrs) do
     module
-    |> cast(attrs, [:name, :status, :gitlab_job_id, :finished_at, :created_at, :gitlab_pipeline_id, :app_id])
+    |> cast(attrs, [:name, :status, :gitlab_job_id, :finished_at, :created_at, :gitlab_pipeline_id, :app_id, :logs])
     |> validate_required([:name, :status, :gitlab_job_id, :created_at, :gitlab_pipeline_id, :app_id])
     |> validate_inclusion(:status, ["pending", "success", "failed", "running", "canceled"])
     |> foreign_key_constraint(:app_id)
