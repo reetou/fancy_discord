@@ -24,10 +24,10 @@ To start your Phoenix server:
 - [x] Add app status to show proper details and messages depending on it
 - [x] Add update app settings
 - [x] Add plug for checking if app exists in user
-- [ ] Disable Dokku zero downtime deployments on create `checks:disable <app>`
 - [x] Add destroy app
 - [x] Detect necessary buildpacks
 - [x] Job logs
+- [ ] Disable Dokku zero downtime deployments on create `checks:disable <app>` (or decide if its needed)
 - [ ] Add getting stdout from bots machines with Vector.dev and NATS
 - [ ] Add Discord webhook notifications about job status and deploy removal
 - [ ] Encrypt bot tokens when sending over the network
