@@ -7,7 +7,8 @@ defmodule FancyDiscordWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: Application.fetch_env!(:fancy_discord, :session_key),
-    signing_salt: Application.fetch_env!(:fancy_discord, :user_token_salt)
+    signing_salt: Application.fetch_env!(:fancy_discord, :user_token_salt),
+    domain: Application.fetch_env!(:fancy_discord, :cookie_domain)
   ]
 
   socket "/socket", FancyDiscordWeb.UserSocket,
