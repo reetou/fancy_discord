@@ -20,7 +20,7 @@ To start your Phoenix server:
 - [x] Attempt init app on app create
 - [x] Dont update last_deploy_at when app was destroyed
 - [x] Add premium apps and dont destroy em
-- [ ] Allow init after destroy
+- [x] Allow init after destroy
 - [x] Add app status to show proper details and messages depending on it
 - [x] Add update app settings
 - [x] Add plug for checking if app exists in user
@@ -28,6 +28,7 @@ To start your Phoenix server:
 - [ ] Add changing app type and handle it gracefully
 - [x] Add destroy app
 - [x] Detect necessary buildpacks
+- [x] Job logs
 - [ ] Add getting stdout from bots machines with Vector.dev and NATS
 - [ ] Add Discord webhook notifications about job status and deploy removal
 - [ ] Encrypt bot tokens when sending over the network
