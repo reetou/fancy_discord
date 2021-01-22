@@ -36,7 +36,7 @@ defmodule FancyDiscord.Schema.App do
     module
     |> cast(attrs, [:project_name, :type, :github_oauth_token, :repo_url, :default_branch, :bot_token, :user_id])
     |> change(%{dokku_app: Haikunator.build(9999)})
-    |> validate_inclusion(:type, ["js", "python"])
+    |> validate_inclusion(:type, ["js", "python", "golang"])
     |> foreign_key_constraint(:user_id)
     |> cast_assoc(:user)
     |> validate_required([:project_name, :dokku_app, :type, :repo_url, :default_branch, :bot_token, :user_id])
