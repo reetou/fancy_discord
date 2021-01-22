@@ -75,4 +75,8 @@ defmodule FancyDiscord do
   def buildpack_by_type(type) when type in ["js"] do
     "https://github.com/heroku/heroku-buildpack-nodejs"
   end
+
+  def buildpack_by_type(type) when type in ["python"] do
+    "https://github.com/heroku/heroku-buildpack-python"
+  end
 end
