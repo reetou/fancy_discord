@@ -25,6 +25,7 @@ config :cors_plug,
        methods: ["GET", "POST", "DELETE", "PUT"]
 
 config :fancy_discord,
+  deployment_ttl: {24, "hour"},
   cookie_domain: "localhost",
   user_token_salt: "dasdsadmk2332bhfsduh12elkme21ejk12gyuafjknfasfasjkfsadfas",
   session_key: "_fancy_discord_key",
