@@ -160,5 +160,6 @@ defmodule FancyDiscord.Schema.App do
     |> where([a], not is_nil(a.machine_id) and a.last_deploy_at < datetime_add(^NaiveDateTime.utc_now(), -4, "hour") and a.plan in [0])
     |> limit(5)
     |> Repo.all()
+    |> Repo.preload(:machine)
   end
 end
